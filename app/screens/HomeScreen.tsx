@@ -23,7 +23,7 @@ const getCategoryBadge = (category: string) => {
 
 export function HomeScreen() {
   const navigate = useNavigate();
-  const { user, usdBalance, wallets, balancesHidden, logout } = useApp();
+  const { user, logout } = useApp();
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showBuy, setShowBuy] = useState(false);

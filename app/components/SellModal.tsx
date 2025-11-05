@@ -279,7 +279,7 @@ export const SellModal: React.FC<SellModalProps> = ({ isOpen, onClose }) => {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Current Price:</span>
-              <span className="font-semibold text-gray-900">{formatCurrency(crypto?.currentPrice)}</span>
+              <span className="font-semibold text-gray-900">{formatCurrency(crypto?.currentPrice || 0)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">From Wallet:</span>
