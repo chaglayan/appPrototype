@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { WelcomeScreen } from './screens/WelcomeScreen';
 import { RegisterScreen } from './screens/RegisterScreen';
