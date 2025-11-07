@@ -4,11 +4,8 @@ import { useApp } from '../context/AppContext';
 import { BalanceOverview } from '../components/BalanceOverview';
 import { WalletList } from '../components/WalletList';
 import { Notifications } from '../components/Notifications';
-import { BuyModal } from '../components/BuyModal';
-import { SellModal } from '../components/SellModal';
-import { SwapModal } from '../components/SwapModal';
 
-type ActiveTab = 'home' | 'buy' | 'sell' | 'swap' | 'settings';
+type ActiveTab = 'home' | 'settings';
 
 const getCategoryBadge = (category: string) => {
   const badges = {
@@ -26,9 +23,6 @@ export function HomeScreen() {
   const { user, logout } = useApp();
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showBuy, setShowBuy] = useState(false);
-  const [showSell, setShowSell] = useState(false);
-  const [showSwap, setShowSwap] = useState(false);
 
   if (!user) {
     navigate('/');
@@ -72,75 +66,6 @@ export function HomeScreen() {
             <BalanceOverview />
             <WalletList />
           </>
-        )}
-
-        {activeTab === 'buy' && (
-          <div className="space-y-4">
-            <div className="bg-white rounded-2xl p-6 shadow-sm text-center">
-              <div className="text-6xl mb-4">🛒</div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Buy Crypto</h2>
-              <p className="text-gray-600 mb-6">
-                Purchase cryptocurrency with multiple payment methods
-              </p>
-              <button
-                onClick={() => setShowBuy(true)}
-                className="bg-blue-600 text-white font-semibold py-4 px-8 rounded-xl hover:bg-blue-700 transition-colors shadow-lg"
-              >
-                Start Buying
-              </button>
-            </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <p className="text-sm text-blue-900">
-                <strong>💡 Tip:</strong> Use your USD Account for the lowest fees and instant transactions!
-              </p>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'sell' && (
-          <div className="space-y-4">
-            <div className="bg-white rounded-2xl p-6 shadow-sm text-center">
-              <div className="text-6xl mb-4">💰</div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Sell Crypto</h2>
-              <p className="text-gray-600 mb-6">
-                Convert your crypto to USD instantly
-              </p>
-              <button
-                onClick={() => setShowSell(true)}
-                className="bg-green-600 text-white font-semibold py-4 px-8 rounded-xl hover:bg-green-700 transition-colors shadow-lg"
-              >
-                Start Selling
-              </button>
-            </div>
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-              <p className="text-sm text-green-900">
-                <strong>ℹ️ Note:</strong> You can only sell from your Xcoins wallets to your USD account.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'swap' && (
-          <div className="space-y-4">
-            <div className="bg-white rounded-2xl p-6 shadow-sm text-center">
-              <div className="text-6xl mb-4">🔄</div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Swap Crypto</h2>
-              <p className="text-gray-600 mb-6">
-                Exchange one cryptocurrency for another
-              </p>
-              <button
-                onClick={() => setShowSwap(true)}
-                className="bg-purple-600 text-white font-semibold py-4 px-8 rounded-xl hover:bg-purple-700 transition-colors shadow-lg"
-              >
-                Start Swapping
-              </button>
-            </div>
-            <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-              <p className="text-sm text-purple-900">
-                <strong>⚡ Fast:</strong> Instantly swap between any supported cryptocurrencies!
-              </p>
-            </div>
-          </div>
         )}
 
         {activeTab === 'settings' && (
@@ -191,30 +116,24 @@ export function HomeScreen() {
             </button>
 
             <button
-              onClick={() => setActiveTab('buy')}
-              className={`flex flex-col items-center py-2 px-4 ${
-                activeTab === 'buy' ? 'text-blue-600' : 'text-gray-500'
-              }`}
+              onClick={() => navigate('/buy')}
+              className="flex flex-col items-center py-2 px-4 text-gray-500 hover:text-blue-600"
             >
               <span className="text-2xl mb-1">🛒</span>
               <span className="text-xs font-medium">Buy</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('sell')}
-              className={`flex flex-col items-center py-2 px-4 ${
-                activeTab === 'sell' ? 'text-blue-600' : 'text-gray-500'
-              }`}
+              onClick={() => navigate('/sell')}
+              className="flex flex-col items-center py-2 px-4 text-gray-500 hover:text-green-600"
             >
               <span className="text-2xl mb-1">💰</span>
               <span className="text-xs font-medium">Sell</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('swap')}
-              className={`flex flex-col items-center py-2 px-4 ${
-                activeTab === 'swap' ? 'text-blue-600' : 'text-gray-500'
-              }`}
+              onClick={() => navigate('/swap')}
+              className="flex flex-col items-center py-2 px-4 text-gray-500 hover:text-purple-600"
             >
               <span className="text-2xl mb-1">🔄</span>
               <span className="text-xs font-medium">Swap</span>
@@ -249,11 +168,6 @@ export function HomeScreen() {
           </div>
         </div>
       )}
-
-      {/* Modals */}
-      <BuyModal isOpen={showBuy} onClose={() => setShowBuy(false)} />
-      <SellModal isOpen={showSell} onClose={() => setShowSell(false)} />
-      <SwapModal isOpen={showSwap} onClose={() => setShowSwap(false)} />
     </div>
   );
 }
