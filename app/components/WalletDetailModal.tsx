@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Modal } from './Modal';
 import { Wallet } from '../types';
 import { getCryptoById } from '../data/cryptocurrencies';
@@ -12,31 +13,117 @@ interface WalletDetailModalProps {
 }
 
 export const WalletDetailModal: React.FC<WalletDetailModalProps> = ({ isOpen, onClose, wallet }) => {
-  const { addNotification } = useApp();
+  const navigate = useNavigate();
+  const { addNotification, updateWallet } = useApp();
   const [showDeposit, setShowDeposit] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
+  const [showSimulateDeposit, setShowSimulateDeposit] = useState(false);
+  const [withdrawAddress, setWithdrawAddress] = useState('');
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [depositAmount, setDepositAmount] = useState('');
 
   const crypto = getCryptoById(wallet.cryptoId);
   if (!crypto) return null;
 
   const usdValue = wallet.amount * crypto.currentPrice;
 
-  const handleDeposit = () => {
-    addNotification({
-      type: 'success',
-      title: 'Deposit Initiated',
-      message: `Send ${crypto.symbol} to the address shown. Funds will appear after confirmation.`,
-    });
-    setShowDeposit(false);
+  const handleBuyMore = () => {
+    onClose();
+    navigate(`/buy?crypto=${wallet.cryptoId}&wallet=xcoins`);
   };
 
-  const handleWithdraw = () => {
+  const handleSell = () => {
+    onClose();
+    navigate(`/sell?crypto=${wallet.cryptoId}&walletId=${wallet.id}`);
+  };
+
+  const handleSimulateDeposit = async () => {
+    const amount = parseFloat(depositAmount);
+    if (!amount || amount <= 0) {
+      addNotification({
+        type: 'error',
+        title: 'Invalid Amount',
+        message: 'Please enter a valid amount',
+      });
+      return;
+    }
+
+    setShowSimulateDeposit(false);
+    setShowDeposit(false);
+
+    addNotification({
+      type: 'info',
+      title: 'Deposit Pending',
+      message: `${formatCrypto(amount)} ${crypto.symbol} deposit is being processed...`,
+    });
+
+    // Simulate network confirmation delay
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    updateWallet(wallet.cryptoId, amount);
+
     addNotification({
       type: 'success',
-      title: 'Withdrawal Initiated',
-      message: `Your ${crypto.symbol} withdrawal request is being processed.`,
+      title: 'Deposit Confirmed',
+      message: `${formatCrypto(amount)} ${crypto.symbol} has been added to your wallet!`,
     });
+
+    setDepositAmount('');
+    onClose();
+  };
+
+  const handleWithdraw = async () => {
+    const amount = parseFloat(withdrawAmount);
+
+    if (!withdrawAddress) {
+      addNotification({
+        type: 'error',
+        title: 'Missing Address',
+        message: 'Please enter a recipient address',
+      });
+      return;
+    }
+
+    if (!amount || amount <= 0) {
+      addNotification({
+        type: 'error',
+        title: 'Invalid Amount',
+        message: 'Please enter a valid amount',
+      });
+      return;
+    }
+
+    if (amount > wallet.amount) {
+      addNotification({
+        type: 'error',
+        title: 'Insufficient Balance',
+        message: 'You do not have enough balance',
+      });
+      return;
+    }
+
     setShowWithdraw(false);
+
+    addNotification({
+      type: 'info',
+      title: 'Withdrawal Processing',
+      message: `Withdrawing ${formatCrypto(amount)} ${crypto.symbol}...`,
+    });
+
+    // Simulate processing delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    updateWallet(wallet.cryptoId, -amount);
+
+    addNotification({
+      type: 'success',
+      title: 'Withdrawal Complete',
+      message: `${formatCrypto(amount)} ${crypto.symbol} has been sent to ${withdrawAddress.substring(0, 10)}...`,
+    });
+
+    setWithdrawAddress('');
+    setWithdrawAmount('');
+    onClose();
   };
 
   return (
@@ -75,10 +162,16 @@ export const WalletDetailModal: React.FC<WalletDetailModalProps> = ({ isOpen, on
 
         {/* Actions Grid */}
         <div className="grid grid-cols-2 gap-3">
-          <button className="bg-blue-600 text-white font-semibold py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors">
+          <button
+            onClick={handleBuyMore}
+            className="bg-blue-600 text-white font-semibold py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors"
+          >
             Buy More
           </button>
-          <button className="bg-green-600 text-white font-semibold py-3 px-4 rounded-xl hover:bg-green-700 transition-colors">
+          <button
+            onClick={handleSell}
+            className="bg-green-600 text-white font-semibold py-3 px-4 rounded-xl hover:bg-green-700 transition-colors"
+          >
             Sell to USD
           </button>
           <button
@@ -125,11 +218,54 @@ export const WalletDetailModal: React.FC<WalletDetailModalProps> = ({ isOpen, on
                 • Funds will appear after network confirmation
               </p>
               <button
-                onClick={handleDeposit}
+                onClick={() => {
+                  setShowDeposit(false);
+                  setShowSimulateDeposit(true);
+                }}
+                className="w-full bg-purple-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-purple-700 transition-colors mb-2"
+              >
+                Simulate Deposit
+              </button>
+              <button
+                onClick={() => setShowDeposit(false)}
                 className="w-full bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-colors"
               >
                 Close
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Simulate Deposit Modal */}
+        {showSimulateDeposit && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowSimulateDeposit(false)}>
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Simulate Deposit</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Amount to Deposit</label>
+                  <input
+                    type="number"
+                    step="0.00000001"
+                    value={depositAmount}
+                    onChange={(e) => setDepositAmount(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
+                </div>
+                <button
+                  onClick={handleSimulateDeposit}
+                  className="w-full bg-purple-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-purple-700 transition-colors"
+                >
+                  Confirm Deposit
+                </button>
+                <button
+                  onClick={() => setShowSimulateDeposit(false)}
+                  className="w-full bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -144,7 +280,9 @@ export const WalletDetailModal: React.FC<WalletDetailModalProps> = ({ isOpen, on
                   <label className="block text-sm font-medium text-gray-700 mb-2">Recipient Address</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={withdrawAddress}
+                    onChange={(e) => setWithdrawAddress(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     placeholder={`Enter ${crypto.symbol} address`}
                   />
                 </div>
@@ -153,14 +291,25 @@ export const WalletDetailModal: React.FC<WalletDetailModalProps> = ({ isOpen, on
                   <input
                     type="number"
                     step="0.00000001"
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     placeholder="0.00"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Available: {formatCrypto(wallet.amount)} {crypto.symbol}</p>
+                  <div className="flex justify-between items-center mt-1">
+                    <p className="text-xs text-gray-500">Available: {formatCrypto(wallet.amount)} {crypto.symbol}</p>
+                    <button
+                      type="button"
+                      onClick={() => setWithdrawAmount(wallet.amount.toString())}
+                      className="text-xs text-orange-600 font-semibold hover:text-orange-700"
+                    >
+                      Max
+                    </button>
+                  </div>
                 </div>
                 <button
                   onClick={handleWithdraw}
-                  className="w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-blue-700 transition-colors"
+                  className="w-full bg-orange-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-orange-700 transition-colors"
                 >
                   Confirm Withdrawal
                 </button>
