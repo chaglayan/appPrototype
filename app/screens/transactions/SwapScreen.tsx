@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
-import { cryptocurrencies, getCryptoById } from '../data/cryptocurrencies';
-import { formatCrypto, formatCurrency } from '../utils/format';
+import { useApp } from '../../context/AppContext';
+import { cryptocurrencies, getCryptoById } from '../../data/cryptocurrencies';
+import { formatCrypto, formatCurrency } from '../../utils/format';
 
 type SwapStep = 'select' | 'summary' | 'processing' | 'complete';
 

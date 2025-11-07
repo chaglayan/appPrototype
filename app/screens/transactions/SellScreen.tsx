@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
-import { getCryptoById } from '../data/cryptocurrencies';
-import { formatCurrency, formatCrypto } from '../utils/format';
+import { useApp } from '../../context/AppContext';
+import { getCryptoById } from '../../data/cryptocurrencies';
+import { formatCurrency, formatCrypto } from '../../utils/format';
 
 type SellStep = 'select' | 'summary' | 'processing' | 'complete';
 

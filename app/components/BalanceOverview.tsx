@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { getCryptoById } from '../data/cryptocurrencies';
 import { formatCurrency, maskValue } from '../utils/format';
-import { TopUpModal } from './TopUpModal';
 
 export const BalanceOverview: React.FC = () => {
+  const navigate = useNavigate();
   const { usdBalance, wallets, balancesHidden, toggleBalancesHidden } = useApp();
-  const [showTopUp, setShowTopUp] = useState(false);
-  const [showWithdraw, setShowWithdraw] = useState(false);
 
   // Calculate total wallet value in USD
   const totalWalletValue = wallets.reduce((total, wallet) => {
@@ -54,7 +53,7 @@ export const BalanceOverview: React.FC = () => {
           {/* Add USD or Top up/Withdraw buttons */}
           {!hasUsdBalance ? (
             <button
-              onClick={() => setShowTopUp(true)}
+              onClick={() => navigate('/topup')}
               className="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center space-x-2 hover:bg-blue-700 transition-colors"
             >
               <span className="text-xl">+</span>
@@ -63,14 +62,14 @@ export const BalanceOverview: React.FC = () => {
           ) : (
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => setShowTopUp(true)}
+                onClick={() => navigate('/topup')}
                 className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm"
               >
                 Top Up
               </button>
               <button
-                onClick={() => setShowWithdraw(true)}
-                className="bg-white text-blue-600 font-semibold py-2 px-4 rounded-lg border border-blue-600 hover:bg-blue-50 transition-colors text-sm"
+                onClick={() => navigate('/withdraw-usd')}
+                className="bg-orange-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-orange-700 transition-colors text-sm"
               >
                 Withdraw
               </button>
@@ -92,24 +91,6 @@ export const BalanceOverview: React.FC = () => {
           <p className="text-xs text-gray-500 mt-2">{wallets.length} wallet{wallets.length !== 1 ? 's' : ''}</p>
         </div>
       </div>
-
-      {/* Modals */}
-      {showTopUp && <TopUpModal isOpen={showTopUp} onClose={() => setShowTopUp(false)} />}
-
-      {showWithdraw && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowWithdraw(false)}>
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Withdraw USD</h3>
-            <p className="text-gray-600 mb-6">Withdraw feature coming soon!</p>
-            <button
-              onClick={() => setShowWithdraw(false)}
-              className="w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-blue-700 transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 };

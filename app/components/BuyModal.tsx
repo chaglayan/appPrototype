@@ -20,7 +20,6 @@ export const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose }) => {
     externalWallets,
     updateUsdBalance,
     updateWallet,
-    createWallet,
     addExternalWallet,
     addNotification,
   } = useApp();

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
-import { cryptocurrencies, getCryptoById } from '../data/cryptocurrencies';
-import { paymentMethods } from '../data/paymentMethods';
-import { formatCurrency, formatCrypto } from '../utils/format';
+import { useApp } from '../../context/AppContext';
+import { cryptocurrencies, getCryptoById } from '../../data/cryptocurrencies';
+import { paymentMethods } from '../../data/paymentMethods';
+import { formatCurrency, formatCrypto } from '../../utils/format';
 
 type BuyStep = 'select' | 'summary' | 'processing' | 'complete';
 type WalletOption = 'xcoins' | 'create' | 'external' | 'new-external';
@@ -14,10 +14,8 @@ export function BuyScreen() {
   const {
     usdBalance,
     wallets,
-    externalWallets,
     updateUsdBalance,
     updateWallet,
-    addExternalWallet,
     addNotification,
   } = useApp();
 
@@ -28,15 +26,11 @@ export function BuyScreen() {
   const [selectedCrypto, setSelectedCrypto] = useState(preselectedCrypto || cryptocurrencies[0].id);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('usd_account');
   const [walletOption, setWalletOption] = useState<WalletOption>(preselectedWallet === 'xcoins' ? 'xcoins' : 'xcoins');
-  const [selectedExternalWallet, setSelectedExternalWallet] = useState('');
-  const [newExternalAddress, setNewExternalAddress] = useState('');
-  const [newExternalLabel, setNewExternalLabel] = useState('');
   const [usdAmount, setUsdAmount] = useState('');
 
   const crypto = getCryptoById(selectedCrypto);
   const paymentMethod = paymentMethods.find(pm => pm.id === selectedPaymentMethod);
   const hasXcoinsWallet = wallets.some(w => w.cryptoId === selectedCrypto && w.isXcoinsWallet);
-  const cryptoExternalWallets = externalWallets.filter(w => w.cryptoId === selectedCrypto);
 
   const amount = parseFloat(usdAmount) || 0;
   const fee = paymentMethod ? (amount * paymentMethod.fee) / 100 : 0;
@@ -92,14 +86,6 @@ export function BuyScreen() {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     try {
-      if (walletOption === 'new-external') {
-        addExternalWallet({
-          cryptoId: selectedCrypto,
-          address: newExternalAddress,
-          label: newExternalLabel,
-        });
-      }
-
       if (selectedPaymentMethod === 'usd_account') {
         updateUsdBalance(-total);
         if (walletOption === 'xcoins' || walletOption === 'create') {
