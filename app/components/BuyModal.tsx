@@ -118,11 +118,6 @@ export const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose }) => {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     try {
-      // Create wallet if needed
-      if (walletOption === 'create') {
-        createWallet(selectedCrypto);
-      }
-
       // Add external wallet if new
       if (walletOption === 'new-external') {
         addExternalWallet({
@@ -135,6 +130,7 @@ export const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose }) => {
       // Update balances only if using USD account
       if (selectedPaymentMethod === 'usd_account') {
         updateUsdBalance(-total);
+        // updateWallet will create the wallet if it doesn't exist
         if (walletOption === 'xcoins' || walletOption === 'create') {
           updateWallet(selectedCrypto, cryptoAmount);
         }
