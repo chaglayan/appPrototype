@@ -13,8 +13,10 @@ interface AppContextType extends AppState {
   addExternalWallet: (wallet: Omit<ExternalWallet, 'id'>) => void;
   addBankAccount: (bank: Omit<BankAccount, 'id' | 'isVerified'>) => void;
   removeBankAccount: (id: string) => void;
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void;
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
   removeNotification: (id: string) => void;
+  markNotificationAsRead: (id: string) => void;
+  markAllNotificationsAsRead: () => void;
   toggleBalancesHidden: () => void;
 }
 
@@ -192,28 +194,40 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }));
   };
 
-  const addNotification = (notification: Omit<Notification, 'id' | 'timestamp'>) => {
+  const addNotification = (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     const newNotification: Notification = {
       ...notification,
       id: Math.random().toString(36).substring(7),
       timestamp: new Date(),
+      read: false,
     };
 
     setState(prev => ({
       ...prev,
       notifications: [newNotification, ...prev.notifications],
     }));
-
-    // Auto-remove notification after 5 seconds
-    setTimeout(() => {
-      removeNotification(newNotification.id);
-    }, 5000);
   };
 
   const removeNotification = (id: string) => {
     setState(prev => ({
       ...prev,
       notifications: prev.notifications.filter(n => n.id !== id),
+    }));
+  };
+
+  const markNotificationAsRead = (id: string) => {
+    setState(prev => ({
+      ...prev,
+      notifications: prev.notifications.map(n =>
+        n.id === id ? { ...n, read: true } : n
+      ),
+    }));
+  };
+
+  const markAllNotificationsAsRead = () => {
+    setState(prev => ({
+      ...prev,
+      notifications: prev.notifications.map(n => ({ ...n, read: true })),
     }));
   };
 
@@ -260,6 +274,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     removeBankAccount,
     addNotification,
     removeNotification,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
     toggleBalancesHidden,
   };
 

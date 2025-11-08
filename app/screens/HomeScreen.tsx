@@ -20,7 +20,7 @@ const getCategoryBadge = (category: string) => {
 
 export function HomeScreen() {
   const navigate = useNavigate();
-  const { user, logout } = useApp();
+  const { user, logout, notifications } = useApp();
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -30,6 +30,7 @@ export function HomeScreen() {
   }
 
   const categoryBadge = getCategoryBadge(user.category);
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -51,9 +52,14 @@ export function HomeScreen() {
             {/* Right: Notifications */}
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+              className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
             >
               <span className="text-xl">🔔</span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -153,21 +159,7 @@ export function HomeScreen() {
       </div>
 
       {/* Notifications Panel */}
-      {showNotifications && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={() => setShowNotifications(false)}>
-          <div className="absolute top-0 right-0 w-full max-w-md bg-white h-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="p-4 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Notifications</h2>
-                <button onClick={() => setShowNotifications(false)} className="text-2xl">✕</button>
-              </div>
-            </div>
-            <div className="p-4">
-              <Notifications />
-            </div>
-          </div>
-        </div>
-      )}
+      <Notifications isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
     </div>
   );
 }

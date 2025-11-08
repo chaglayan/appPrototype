@@ -17,6 +17,7 @@ export function BuyScreen() {
     externalWallets,
     updateUsdBalance,
     updateWallet,
+    addExternalWallet,
     addNotification,
   } = useApp();
 
@@ -36,6 +37,7 @@ export function BuyScreen() {
   const crypto = getCryptoById(selectedCrypto);
   const paymentMethod = paymentMethods.find(pm => pm.id === selectedPaymentMethod);
   const hasXcoinsWallet = wallets.some(w => w.cryptoId === selectedCrypto && w.isXcoinsWallet);
+  const selectedExternalWallet = externalWallets.find(w => w.id === selectedExternalWalletId);
 
   const amount = parseFloat(usdAmount) || 0;
   const fee = paymentMethod ? (amount * paymentMethod.fee) / 100 : 0;
@@ -251,13 +253,18 @@ export function BuyScreen() {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-gray-900">External Wallet</p>
-                      <p className="text-sm text-gray-600">
-                        {selectedExternalWalletId ?
-                          `Send to: ${externalWallets.find(w => w.id === selectedExternalWalletId)?.label || 'Selected wallet'}` :
-                          'Send to an external wallet address'}
-                      </p>
+                    <div className="flex-1 mr-3">
+                      {selectedExternalWallet ? (
+                        <>
+                          <p className="font-semibold text-gray-900">{selectedExternalWallet.label}</p>
+                          <p className="text-sm text-gray-600 font-mono truncate">{selectedExternalWallet.address}</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-semibold text-gray-900">External Wallet</p>
+                          <p className="text-sm text-gray-600">Send to an external wallet address</p>
+                        </>
+                      )}
                     </div>
                     <div className="text-2xl">🔗</div>
                   </div>
@@ -438,15 +445,43 @@ export function BuyScreen() {
                       return;
                     }
 
-                    const newWalletId = Math.random().toString(36).substring(7);
-                    setSelectedExternalWalletId(newWalletId);
+                    const tempLabel = newExternalWalletLabel;
+                    const tempAddress = newExternalWalletAddress;
+
+                    // Add the external wallet to context
+                    addExternalWallet({
+                      cryptoId: selectedCrypto,
+                      address: tempAddress,
+                      label: tempLabel,
+                    });
+
+                    // Use setTimeout to wait for React state update
+                    setTimeout(() => {
+                      // Find the wallet we just added by matching label and address
+                      const newWallet = externalWallets.find(
+                        w => w.cryptoId === selectedCrypto &&
+                        w.label === tempLabel &&
+                        w.address === tempAddress
+                      );
+
+                      if (newWallet) {
+                        setSelectedExternalWalletId(newWallet.id);
+                      } else {
+                        // Fallback: get the most recently added wallet for this crypto
+                        const walletsForCrypto = externalWallets.filter(w => w.cryptoId === selectedCrypto);
+                        if (walletsForCrypto.length > 0) {
+                          setSelectedExternalWalletId(walletsForCrypto[walletsForCrypto.length - 1].id);
+                        }
+                      }
+                    }, 50);
+
                     setWalletOption('external');
                     setShowExternalWalletModal(false);
 
                     addNotification({
                       type: 'success',
                       title: 'Wallet Added',
-                      message: `${newExternalWalletLabel} has been added`,
+                      message: `${tempLabel} has been added`,
                     });
 
                     // Clear inputs

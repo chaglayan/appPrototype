@@ -71,6 +71,7 @@ export interface Notification {
   title: string;
   message: string;
   timestamp: Date;
+  read: boolean;
 }
 
 export interface BankAccount {
