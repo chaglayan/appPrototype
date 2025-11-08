@@ -14,6 +14,7 @@ export function BuyScreen() {
   const {
     usdBalance,
     wallets,
+    externalWallets,
     updateUsdBalance,
     updateWallet,
     addNotification,
@@ -27,6 +28,10 @@ export function BuyScreen() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('usd_account');
   const [walletOption, setWalletOption] = useState<WalletOption>(preselectedWallet === 'xcoins' ? 'xcoins' : 'xcoins');
   const [usdAmount, setUsdAmount] = useState('');
+  const [showExternalWalletModal, setShowExternalWalletModal] = useState(false);
+  const [selectedExternalWalletId, setSelectedExternalWalletId] = useState('');
+  const [newExternalWalletAddress, setNewExternalWalletAddress] = useState('');
+  const [newExternalWalletLabel, setNewExternalWalletLabel] = useState('');
 
   const crypto = getCryptoById(selectedCrypto);
   const paymentMethod = paymentMethods.find(pm => pm.id === selectedPaymentMethod);
@@ -201,6 +206,65 @@ export function BuyScreen() {
               )}
             </div>
 
+            {/* Wallet Destination */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Wallet Destination</label>
+              <div className="space-y-2">
+                {/* Xcoins Wallet Option */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (hasXcoinsWallet) {
+                      setWalletOption('xcoins');
+                    } else {
+                      setWalletOption('create');
+                    }
+                  }}
+                  className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                    (walletOption === 'xcoins' || walletOption === 'create')
+                      ? 'border-blue-600 bg-blue-50'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-gray-900">Xcoins Wallet</p>
+                      <p className="text-sm text-gray-600">
+                        {hasXcoinsWallet ? 'Store in your Xcoins wallet' : 'Create and store in new Xcoins wallet'}
+                      </p>
+                    </div>
+                    <div className="text-2xl">💼</div>
+                  </div>
+                </button>
+
+                {/* External Wallet Option */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWalletOption('external');
+                    setShowExternalWalletModal(true);
+                  }}
+                  className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                    walletOption === 'external'
+                      ? 'border-blue-600 bg-blue-50'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-gray-900">External Wallet</p>
+                      <p className="text-sm text-gray-600">
+                        {selectedExternalWalletId ?
+                          `Send to: ${externalWallets.find(w => w.id === selectedExternalWalletId)?.label || 'Selected wallet'}` :
+                          'Send to an external wallet address'}
+                      </p>
+                    </div>
+                    <div className="text-2xl">🔗</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
             {/* Preview */}
             {crypto && amount > 0 && (
               <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4">
@@ -303,6 +367,108 @@ export function BuyScreen() {
           </div>
         )}
       </div>
+
+      {/* External Wallet Selection Modal */}
+      {showExternalWalletModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowExternalWalletModal(false)}>
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Select External Wallet</h3>
+
+            {/* Existing External Wallets */}
+            {externalWallets.filter(w => w.cryptoId === selectedCrypto).length > 0 && (
+              <div className="mb-6">
+                <p className="text-sm text-gray-600 mb-3">Saved Wallets</p>
+                <div className="space-y-2">
+                  {externalWallets
+                    .filter(w => w.cryptoId === selectedCrypto)
+                    .map((wallet) => (
+                      <button
+                        key={wallet.id}
+                        onClick={() => {
+                          setSelectedExternalWalletId(wallet.id);
+                          setWalletOption('external');
+                          setShowExternalWalletModal(false);
+                        }}
+                        className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                          selectedExternalWalletId === wallet.id
+                            ? 'border-blue-600 bg-blue-50'
+                            : 'border-gray-200 bg-white hover:border-gray-300'
+                        }`}
+                      >
+                        <p className="font-semibold text-gray-900">{wallet.label}</p>
+                        <p className="text-sm text-gray-500 font-mono truncate">{wallet.address}</p>
+                      </button>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {/* Add New External Wallet */}
+            <div>
+              <p className="text-sm text-gray-600 mb-3">Add New Wallet</p>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Wallet Label</label>
+                  <input
+                    type="text"
+                    value={newExternalWalletLabel}
+                    onChange={(e) => setNewExternalWalletLabel(e.target.value)}
+                    placeholder="e.g., My Ledger Wallet"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{crypto?.symbol} Address</label>
+                  <input
+                    type="text"
+                    value={newExternalWalletAddress}
+                    onChange={(e) => setNewExternalWalletAddress(e.target.value)}
+                    placeholder={`Enter ${crypto?.symbol} address`}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    if (!newExternalWalletLabel || !newExternalWalletAddress) {
+                      addNotification({
+                        type: 'error',
+                        title: 'Missing Information',
+                        message: 'Please enter both wallet label and address',
+                      });
+                      return;
+                    }
+
+                    const newWalletId = Math.random().toString(36).substring(7);
+                    setSelectedExternalWalletId(newWalletId);
+                    setWalletOption('external');
+                    setShowExternalWalletModal(false);
+
+                    addNotification({
+                      type: 'success',
+                      title: 'Wallet Added',
+                      message: `${newExternalWalletLabel} has been added`,
+                    });
+
+                    // Clear inputs
+                    setNewExternalWalletLabel('');
+                    setNewExternalWalletAddress('');
+                  }}
+                  className="w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-blue-700 transition-colors"
+                >
+                  Add Wallet
+                </button>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowExternalWalletModal(false)}
+              className="w-full mt-4 bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
