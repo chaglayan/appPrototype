@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import Modal from './Modal';
+import { Modal } from './Modal';
 
 interface AddBankAccountModalProps {
   isOpen: boolean;
@@ -27,6 +27,38 @@ export default function AddBankAccountModal({ isOpen, onClose }: AddBankAccountM
   const [accountType, setAccountType] = useState<'checking' | 'savings'>('checking');
   const [accountNumber, setAccountNumber] = useState('');
   const [routingNumber, setRoutingNumber] = useState('');
+
+  const handleVerify = async () => {
+    // Simulate verification process
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    const icon = popularBanks.find(b => b.name === bankName)?.icon || '🏦';
+    const maskedAccount = '****' + accountNumber.slice(-4);
+
+    addBankAccount({
+      name: accountName,
+      accountNumber: maskedAccount,
+      routingNumber,
+      type: accountType,
+      bankName,
+      icon,
+    });
+
+    addNotification({
+      type: 'success',
+      title: 'Bank Account Added',
+      message: `${bankName} ${accountType} account linked successfully!`,
+    });
+
+    setStep('complete');
+  };
+
+  // Trigger verification when step becomes 'verify'
+  useEffect(() => {
+    if (step === 'verify') {
+      handleVerify();
+    }
+  }, [step]);
 
   const handleReset = () => {
     setStep('select');
@@ -78,43 +110,32 @@ export default function AddBankAccountModal({ isOpen, onClose }: AddBankAccountM
     setStep('verify');
   };
 
-  const handleVerify = async () => {
-    // Simulate verification process
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const icon = popularBanks.find(b => b.name === bankName)?.icon || '🏦';
-    const maskedAccount = '****' + accountNumber.slice(-4);
-
-    addBankAccount({
-      name: accountName,
-      accountNumber: maskedAccount,
-      routingNumber,
-      type: accountType,
-      bankName,
-      icon,
-    });
-
-    addNotification({
-      type: 'success',
-      title: 'Bank Account Added',
-      message: `${bankName} ${accountType} account linked successfully!`,
-    });
-
-    setStep('complete');
-  };
-
   const handleFinish = () => {
     handleClose();
   };
 
+  const getModalTitle = () => {
+    switch (step) {
+      case 'select':
+        return 'Link Bank Account';
+      case 'details':
+        return 'Account Details';
+      case 'verify':
+        return 'Verifying Account';
+      case 'complete':
+        return 'Account Verified';
+      default:
+        return 'Add Bank Account';
+    }
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={handleClose}>
+    <Modal isOpen={isOpen} onClose={handleClose} title={getModalTitle()}>
       <div className="p-6">
         {step === 'select' && (
           <div className="space-y-6">
             <div className="text-center">
               <div className="text-5xl mb-4">🏦</div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Link Bank Account</h2>
               <p className="text-gray-600">Select your bank to get started</p>
             </div>
 
@@ -150,7 +171,6 @@ export default function AddBankAccountModal({ isOpen, onClose }: AddBankAccountM
           <div className="space-y-6">
             <div className="text-center">
               <div className="text-5xl mb-4">📋</div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Details</h2>
               <p className="text-gray-600">Enter your {bankName} account information</p>
             </div>
 
@@ -251,7 +271,6 @@ export default function AddBankAccountModal({ isOpen, onClose }: AddBankAccountM
           <div className="space-y-6">
             <div className="text-center">
               <div className="text-5xl mb-4 animate-pulse">⚡</div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Verifying Account</h2>
               <p className="text-gray-600">Please wait while we verify your bank account...</p>
             </div>
 
@@ -279,7 +298,6 @@ export default function AddBankAccountModal({ isOpen, onClose }: AddBankAccountM
         {step === 'complete' && (
           <div className="space-y-6 text-center py-6">
             <div className="text-6xl mb-4">✅</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Verified!</h2>
             <p className="text-gray-600">
               Your {bankName} account has been successfully linked to your Xcoins account.
             </p>
