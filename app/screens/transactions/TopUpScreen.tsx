@@ -2,31 +2,20 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { formatCurrency } from '../../utils/format';
+import AddBankAccountModal from '../../components/AddBankAccountModal';
 
 type TopUpStep = 'select' | 'amount' | 'summary' | 'processing' | 'complete';
 
-interface BankAccount {
-  id: string;
-  name: string;
-  accountNumber: string;
-  type: 'checking' | 'savings';
-  icon: string;
-}
-
-const mockBankAccounts: BankAccount[] = [
-  { id: 'ach1', name: 'Chase Checking', accountNumber: '****1234', type: 'checking', icon: '🏦' },
-  { id: 'ach2', name: 'Wells Fargo Savings', accountNumber: '****5678', type: 'savings', icon: '🏦' },
-];
-
 export function TopUpScreen() {
   const navigate = useNavigate();
-  const { usdBalance, updateUsdBalance, addNotification } = useApp();
+  const { usdBalance, bankAccounts, updateUsdBalance, addNotification } = useApp();
 
   const [step, setStep] = useState<TopUpStep>('select');
   const [selectedBankId, setSelectedBankId] = useState('');
   const [amount, setAmount] = useState('');
+  const [showAddBankModal, setShowAddBankModal] = useState(false);
 
-  const selectedBank = mockBankAccounts.find(b => b.id === selectedBankId);
+  const selectedBank = bankAccounts.find(b => b.id === selectedBankId);
   const depositAmount = parseFloat(amount) || 0;
 
   const handleBack = () => {
@@ -116,11 +105,7 @@ export function TopUpScreen() {
   };
 
   const handleAddNewBank = () => {
-    addNotification({
-      type: 'info',
-      title: 'Coming Soon',
-      message: 'Bank account linking will be available soon',
-    });
+    setShowAddBankModal(true);
   };
 
   return (
@@ -156,33 +141,51 @@ export function TopUpScreen() {
                 </button>
               </div>
               <div className="space-y-2">
-                {mockBankAccounts.map((bank) => (
-                  <button
-                    key={bank.id}
-                    type="button"
-                    onClick={() => setSelectedBankId(bank.id)}
-                    className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
-                      selectedBankId === bank.id
-                        ? 'border-blue-600 bg-blue-50'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl mr-3">
-                          {bank.icon}
+                {bankAccounts.length === 0 ? (
+                  <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-8 text-center">
+                    <div className="text-4xl mb-3">🏦</div>
+                    <h3 className="font-semibold text-gray-900 mb-2">No Bank Accounts</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Link your bank account to start making deposits
+                    </p>
+                    <button
+                      onClick={handleAddNewBank}
+                      className="bg-blue-600 text-white font-semibold py-2 px-6 rounded-xl hover:bg-blue-700 transition-colors"
+                    >
+                      + Add Bank Account
+                    </button>
+                  </div>
+                ) : (
+                  bankAccounts.map((bank) => (
+                    <button
+                      key={bank.id}
+                      type="button"
+                      onClick={() => setSelectedBankId(bank.id)}
+                      className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                        selectedBankId === bank.id
+                          ? 'border-blue-600 bg-blue-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl mr-3">
+                            {bank.icon}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">{bank.name}</p>
+                            <p className="text-sm text-gray-600">
+                              {bank.type.charAt(0).toUpperCase() + bank.type.slice(1)} {bank.accountNumber}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">{bank.name}</p>
-                          <p className="text-sm text-gray-600">
-                            {bank.type.charAt(0).toUpperCase() + bank.type.slice(1)} {bank.accountNumber}
-                          </p>
-                        </div>
+                        {bank.isVerified && (
+                          <div className="text-green-600 text-sm font-semibold">✓ Verified</div>
+                        )}
                       </div>
-                      <div className="text-green-600 text-sm font-semibold">✓ Verified</div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  ))
+                )}
               </div>
             </div>
 
@@ -360,6 +363,11 @@ export function TopUpScreen() {
           </div>
         )}
       </div>
+
+      <AddBankAccountModal
+        isOpen={showAddBankModal}
+        onClose={() => setShowAddBankModal(false)}
+      />
     </div>
   );
 }

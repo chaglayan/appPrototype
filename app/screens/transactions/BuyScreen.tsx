@@ -86,11 +86,14 @@ export function BuyScreen() {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     try {
+      // Deduct from USD balance if using USD account
       if (selectedPaymentMethod === 'usd_account') {
         updateUsdBalance(-total);
-        if (walletOption === 'xcoins' || walletOption === 'create') {
-          updateWallet(selectedCrypto, cryptoAmount);
-        }
+      }
+
+      // Always add crypto to Xcoins wallet if selected, regardless of payment method
+      if (walletOption === 'xcoins' || walletOption === 'create') {
+        updateWallet(selectedCrypto, cryptoAmount);
       }
 
       setStep('complete');
@@ -147,40 +150,31 @@ export function BuyScreen() {
             {/* Payment Method */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
-              <div className="space-y-2">
+              <select
+                value={selectedPaymentMethod}
+                onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
                 {paymentMethods.map((method) => (
-                  <button
-                    key={method.id}
-                    type="button"
-                    onClick={() => setSelectedPaymentMethod(method.id)}
-                    className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
-                      selectedPaymentMethod === method.id
-                        ? 'border-blue-600 bg-blue-50'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-gray-900">{method.name}</p>
-                        <p className="text-sm text-gray-600">
-                          Fee: {method.fee}%
-                          {method.id === 'usd_account' && ` • Available: ${formatCurrency(usdBalance)}`}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        {method.labels?.map((label) => (
-                          <span
-                            key={label}
-                            className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full"
-                          >
-                            {label}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </button>
+                  <option key={method.id} value={method.id}>
+                    {method.name} - Fee: {method.fee}%
+                    {method.isInstant ? ' • Instant' : ''}
+                    {method.id === 'usd_account' ? ` • Available: ${formatCurrency(usdBalance)}` : ''}
+                  </option>
                 ))}
-              </div>
+              </select>
+              {paymentMethod && (
+                <div className="mt-2 flex items-center gap-2">
+                  {paymentMethod.labels?.map((label) => (
+                    <span
+                      key={label}
+                      className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full"
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Amount Input */}

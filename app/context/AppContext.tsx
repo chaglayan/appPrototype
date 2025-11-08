@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { AppState, Transaction, Notification, User, Wallet, ExternalWallet } from '../types';
+import { AppState, Transaction, Notification, User, Wallet, ExternalWallet, BankAccount } from '../types';
 
 interface AppContextType extends AppState {
   login: (user: User) => void;
@@ -11,6 +11,8 @@ interface AppContextType extends AppState {
   createWallet: (cryptoId: string) => void;
   updateWallet: (cryptoId: string, amount: number) => void;
   addExternalWallet: (wallet: Omit<ExternalWallet, 'id'>) => void;
+  addBankAccount: (bank: Omit<BankAccount, 'id' | 'isVerified'>) => void;
+  removeBankAccount: (id: string) => void;
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void;
   removeNotification: (id: string) => void;
   toggleBalancesHidden: () => void;
@@ -37,6 +39,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     usdBalance: 0,
     wallets: [],
     externalWallets: [],
+    bankAccounts: [],
     transactions: [],
     notifications: [],
     balancesHidden: false,
@@ -95,6 +98,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       usdBalance: 0,
       wallets: [],
       externalWallets: [],
+      bankAccounts: [],
       transactions: [],
       notifications: [],
       balancesHidden: false,
@@ -213,6 +217,27 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }));
   };
 
+  const addBankAccount = (bank: Omit<BankAccount, 'id' | 'isVerified'>) => {
+    setState(prev => ({
+      ...prev,
+      bankAccounts: [
+        ...prev.bankAccounts,
+        {
+          ...bank,
+          id: Math.random().toString(36).substring(7),
+          isVerified: true, // Auto-verify for demo purposes
+        },
+      ],
+    }));
+  };
+
+  const removeBankAccount = (id: string) => {
+    setState(prev => ({
+      ...prev,
+      bankAccounts: prev.bankAccounts.filter(b => b.id !== id),
+    }));
+  };
+
   const toggleBalancesHidden = () => {
     setState(prev => ({
       ...prev,
@@ -231,6 +256,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     createWallet,
     updateWallet,
     addExternalWallet,
+    addBankAccount,
+    removeBankAccount,
     addNotification,
     removeNotification,
     toggleBalancesHidden,

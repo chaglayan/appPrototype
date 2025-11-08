@@ -73,12 +73,24 @@ export interface Notification {
   timestamp: Date;
 }
 
+export interface BankAccount {
+  id: string;
+  name: string;
+  accountNumber: string;
+  routingNumber: string;
+  type: 'checking' | 'savings';
+  bankName: string;
+  icon: string;
+  isVerified: boolean;
+}
+
 export interface AppState {
   user: User | null;
   isAuthenticated: boolean;
   usdBalance: number;
   wallets: Wallet[];
   externalWallets: ExternalWallet[];
+  bankAccounts: BankAccount[];
   transactions: Transaction[];
   notifications: Notification[];
   balancesHidden: boolean;

@@ -9,6 +9,7 @@ export const WalletList: React.FC = () => {
   const { wallets, balancesHidden, createWallet, addNotification } = useApp();
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
   const [showCreateWallet, setShowCreateWallet] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const handleCreateWallet = (cryptoId: string) => {
     const existingWallet = wallets.find(w => w.cryptoId === cryptoId && w.isXcoinsWallet);
@@ -36,7 +37,13 @@ export const WalletList: React.FC = () => {
     <>
       <div className="bg-white rounded-2xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">My Wallets</h2>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors"
+          >
+            <span>My Wallets</span>
+            <span className="text-sm">{isExpanded ? '▼' : '▶'}</span>
+          </button>
           <button
             onClick={() => setShowCreateWallet(true)}
             className="text-blue-600 text-sm font-semibold hover:text-blue-700"
@@ -45,7 +52,8 @@ export const WalletList: React.FC = () => {
           </button>
         </div>
 
-        <div className="space-y-3">
+        {isExpanded && (
+          <div className="space-y-3">
           {xcoinsWallets.map(wallet => {
             const crypto = getCryptoById(wallet.cryptoId);
             if (!crypto) return null;
@@ -97,7 +105,8 @@ export const WalletList: React.FC = () => {
               </button>
             </div>
           )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Wallet Detail Modal */}

@@ -51,21 +51,47 @@ export const WalletDetailModal: React.FC<WalletDetailModalProps> = ({ isOpen, on
     setShowSimulateDeposit(false);
     setShowDeposit(false);
 
+    // Step 1: Transaction detected
     addNotification({
       type: 'info',
-      title: 'Deposit Pending',
-      message: `${formatCrypto(amount)} ${crypto.symbol} deposit is being processed...`,
+      title: 'Transaction Detected',
+      message: `Incoming ${formatCrypto(amount)} ${crypto.symbol} detected on the network`,
     });
 
-    // Simulate network confirmation delay
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Step 2: Awaiting confirmations
+    addNotification({
+      type: 'info',
+      title: 'Awaiting Confirmations (1/6)',
+      message: `${formatCrypto(amount)} ${crypto.symbol} - waiting for network confirmations...`,
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    addNotification({
+      type: 'info',
+      title: 'Confirming (3/6)',
+      message: `${formatCrypto(amount)} ${crypto.symbol} - halfway confirmed`,
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Step 3: Final confirmation
+    addNotification({
+      type: 'info',
+      title: 'Confirming (6/6)',
+      message: `${formatCrypto(amount)} ${crypto.symbol} - fully confirmed, crediting your wallet...`,
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
     updateWallet(wallet.cryptoId, amount);
 
     addNotification({
       type: 'success',
-      title: 'Deposit Confirmed',
-      message: `${formatCrypto(amount)} ${crypto.symbol} has been added to your wallet!`,
+      title: 'Deposit Complete',
+      message: `${formatCrypto(amount)} ${crypto.symbol} has been credited to your wallet!`,
     });
 
     setDepositAmount('');
@@ -104,21 +130,41 @@ export const WalletDetailModal: React.FC<WalletDetailModalProps> = ({ isOpen, on
 
     setShowWithdraw(false);
 
+    // Step 1: Transaction initiated
     addNotification({
       type: 'info',
-      title: 'Withdrawal Processing',
-      message: `Withdrawing ${formatCrypto(amount)} ${crypto.symbol}...`,
+      title: 'Transaction Initiated',
+      message: `Preparing to send ${formatCrypto(amount)} ${crypto.symbol}...`,
     });
 
-    // Simulate processing delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
+    // Deduct from wallet immediately after initiation
     updateWallet(wallet.cryptoId, -amount);
 
+    // Step 2: Broadcasting
+    addNotification({
+      type: 'info',
+      title: 'Broadcasting Transaction',
+      message: `Sending ${formatCrypto(amount)} ${crypto.symbol} to the network...`,
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Step 3: Pending confirmations
+    addNotification({
+      type: 'info',
+      title: 'Pending Confirmations',
+      message: `Transaction broadcast - awaiting blockchain confirmations...`,
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 2500));
+
+    // Step 4: Confirmed
     addNotification({
       type: 'success',
-      title: 'Withdrawal Complete',
-      message: `${formatCrypto(amount)} ${crypto.symbol} has been sent to ${withdrawAddress.substring(0, 10)}...`,
+      title: 'Withdrawal Confirmed',
+      message: `${formatCrypto(amount)} ${crypto.symbol} sent to ${withdrawAddress.substring(0, 10)}...`,
     });
 
     setWithdrawAddress('');
